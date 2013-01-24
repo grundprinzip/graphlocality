@@ -3,6 +3,7 @@
 #include <fstream>
 #include <future>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 
 #include "node.h"
@@ -14,12 +15,15 @@ std::vector<Node*> allNodes;
 bool ego = false;
 
 std::vector<std::pair<uint64_t, std::string>> data = {
-	//{0, "facebook/facebook_clustered_sorted.txt"}
-	EXPAND_NAMES(0),
-	EXPAND_NAMES(107),
-	EXPAND_NAMES(0), EXPAND_NAMES(1684), EXPAND_NAMES(1912),
-	EXPAND_NAMES(3437), EXPAND_NAMES(348), EXPAND_NAMES(3980),
-	EXPAND_NAMES(414), EXPAND_NAMES(686), EXPAND_NAMES(698)
+	//{0, "facebook/nodes_clustered.txt"}
+	//{0, "nodes_t2_cmp.txt"}
+	{0, "nodes.txt"}
+	//{0, "nodes_clus.txt"}
+	// EXPAND_NAMES(0),
+	// EXPAND_NAMES(107),
+	// EXPAND_NAMES(0), EXPAND_NAMES(1684), EXPAND_NAMES(1912),
+	// EXPAND_NAMES(3437), EXPAND_NAMES(348), EXPAND_NAMES(3980),
+	// EXPAND_NAMES(414), EXPAND_NAMES(686), EXPAND_NAMES(698)
 };
 
 
@@ -40,9 +44,10 @@ uint64_t dfs(Node* node, size_t level) {
 
 uint64_t dfsWithColoring(Node* node, size_t level, std::vector<bool>& colors) {
 	uint32_t outs = node->numOutLinks;
-	uint64_t count = 0;
-	if (level == 0)
-		return 1;
+	uint64_t count = 1;
+
+	if (level == 0 || outs == 0)
+		return count;
 
 	// Check depth-first
 	for(size_t i=0; i < outs; ++i ) {
@@ -52,7 +57,6 @@ uint64_t dfsWithColoring(Node* node, size_t level, std::vector<bool>& colors) {
 			(colors)[link] = true;
 		}
 	}
-
 	// Return the number of visited nodes
 	return count;
 }
@@ -71,11 +75,11 @@ void test1(size_t level) {
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
-	std::cout << "Count " << count << std::endl;
-	std::cout << "Duration: " << duration << "ms" << std::endl;
-	std::cout << "Nodes per ms " << count / duration << std::endl;
+	std::cerr << "Count " << count << std::endl;
+	std::cerr << "Duration: " << duration << "ms" << std::endl;
+	std::cerr << "Nodes per ms " << count / duration << std::endl;
 
-	std::cout << "-----------------------------------------------" << std::endl;
+	std::cerr << "-----------------------------------------------" << std::endl;
 }
 
 
@@ -87,7 +91,6 @@ void test2(size_t level) {
 	for(size_t i=0; i < numNodes; ++i) {
 		std::vector<bool> colors(numNodes, false);
 		auto tmp = dfsWithColoring(allNodes[i], level, colors);
-		//std::cout << allNodes[i]->nodeID << " " << tmp << std::endl;
 		count += tmp;
 	}
 
@@ -95,11 +98,11 @@ void test2(size_t level) {
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
-	std::cout << "Count " << count << std::endl;
-	std::cout << "Duration: " << duration << "ms" << std::endl;
-	std::cout << "Nodes per ms " << count / duration << std::endl;
+	std::cerr << "Count " << count << std::endl;
+	std::cerr << "Duration: " << duration << "ms" << std::endl;
+	std::cerr << "Nodes per ms " << count / duration << std::endl;
 
-	std::cout << "-----------------------------------------------" << std::endl;
+	std::cerr << "-----------------------------------------------" << std::endl;
 }
 
 void test3(size_t level) {
@@ -129,11 +132,11 @@ void test3(size_t level) {
 
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
 
-	std::cout << "Count " << count << std::endl;
-	std::cout << "Duration: " << duration << "ms" << std::endl;
-	std::cout << "Nodes per ms " << count / duration << std::endl;
+	std::cerr << "Count " << count << std::endl;
+	std::cerr << "Duration: " << duration << "ms" << std::endl;
+	std::cerr << "Nodes per ms " << count / duration << std::endl;
 
-	std::cout << "-----------------------------------------------" << std::endl;
+	std::cerr << "-----------------------------------------------" << std::endl;
 }
 
 
@@ -165,8 +168,8 @@ int main(int argc, char* argv[]) {
 		p.parse(t.first, t.second);
 	}
 
-	std::cout << "Done Parsing..." << std::endl;
-	std::cout << p.stats() << std::endl;
+	std::cerr << "Done Parsing..." << std::endl;
+	std::cerr << p.stats() << std::endl;
 
 	// Build the nodes
 	auto nodes = p.get();
@@ -182,7 +185,7 @@ int main(int argc, char* argv[]) {
 		return 0;
 	}
 
-
+	// Start the testing..............
 	uint32_t level = std::stoul(argv[1]);
 	//test1(level);
 	test2(level);
